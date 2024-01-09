@@ -1,3 +1,6 @@
+import argparse
+from pathlib import Path
+
 from load_data import load_data
 import os
 import torch
@@ -5,32 +8,46 @@ import numpy as np
 import torch.utils.data as DATA
 from tqdm import tqdm
 import re
-from mscred import MSCRED
-import time
+#from mscred import MSCRED
+#from model import autoencoder
 
+import utils
+
+def get_args_parser():
+    parser = argparse.ArgumentParser('RCLED', add_help=False)
+
+    # model parameters
+    parser.add_argument('--patch_size', default=5, type=int)
+
+    parser.add_argument('--out_dim')
+
+    # Training/Optimization parameters
+    parser.add_argument("--epochs", default=20, type=int)
+    parser.add_argument("--lr", default=0.0002, type=int)
+    parser.add_argument("--optimizer", default="adam", type=str,
+                        choices=['adam', 'sgd', 'lars'])
+    parser.add_argument("--error_limit", default=0.0001, help="""The limitation of c1 and c2 for early stopping algorithm""")
+
+    #Misc
+    parser.add_argument('--data_path', default='/path/to/data/', type=str,
+                        help="""Please specify path to the data.""")
+    parser.add_argument('--output_dir', default=".",
+                        help='Path to save logs and checkpoints.')
+    parser.add_argument('saveckp_freq', default=5, type=int,
+                        help='Save checkpoint every x epochs.')
+
+    return parser
 device = "cuda" if torch.cuda.is_available else "cpu"
 #############
 
-def shrink(epsilon, input):
-    x = input.copy()
-    t1 = x > epsilon
-    t2 = x < epsilon
-    t3 = x > -epsilon
-    t4 = x < -epsilon
-    x[t2 & t3] = 0
-    x[t1] = x[t1] - epsilon
-    x[t4] = x[t4] + epsilon
-    return x
 
-def trans_one2five(x_in):
-    x_1 = torch.roll(x_in, 1, dims=0)
-    x_2 = torch.roll(x_in, 2, dims=0)
-    x_3 = torch.roll(x_in, 3, dims=0)
-    x_4 = torch.roll(x_in, 4, dims=0)
-    return torch.cat((x_4, x_3, x_2, x_1, x_in), 0)
+ #   def Robust_Train(dataloader, model, optimizer, epoch, device_name, lamda, verbose=True, error=0.0001):
+def rcled_train(args):
 
+    # ===================== preparing data ... =====================
+    dataset = 
 
-def Robust_Train(dataloader, model, optimizer, epoch, device_name, lamda, verbose=True, error=0.0001):
+    utils
     s = torch.zeros([5, 3, 30, 30])
     ls = torch.zeros([5, 3, 30, 30])
     model = model.to(device_name)
@@ -161,9 +178,14 @@ def test(dataloader, model, reconstructed_path):
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser('RCLED', parents=[get_args_parser()])
+    args = parser.parse_args()
+    Path(args.output_dir).mkdir(parent=True, exst_ok=True)
+
     epochs = 20
     noise_factors = [0, 1, 2, 3, 4, 5]
     lams = [100, 10, 1, 0.1, 0.01, 0.001]
+
     for noise_factor in noise_factors:
         for lam in lams:
             print("------training on {}-------".format(device))
@@ -184,3 +206,4 @@ if __name__ == '__main__':
             model_names = f'RCLED_syn_data_lam{lam}_noise{noise_factor}.pth'
             torch.save(mscred_model.state_dict(), save_model + model_names)
 """
+i

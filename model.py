@@ -204,7 +204,7 @@ class CnnDecoder(nn.Module):
         return deconv1
 
 
-class MSCRED(nn.Module):
+class autoencoder(nn.Module):
     def __init__(self, in_channels_encoder, in_channels_decoder):
         super(MSCRED, self).__init__()
         self.cnn_encoder = CnnEncoder(in_channels_encoder)
@@ -222,4 +222,4 @@ class MSCRED(nn.Module):
 
 
 if __name__ == '__main__':
-    print('CLED')
+    print('Convolutional LSTM Encoder Decoder')

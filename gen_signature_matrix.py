@@ -61,7 +61,5 @@ def main():
         np.save(out_PATH, matrix)
 
 
-
-
 if __name__ == "__main__":
     main()

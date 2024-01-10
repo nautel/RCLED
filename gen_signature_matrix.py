@@ -1,5 +1,23 @@
 import numpy as np
 import argparse
+import os
+from tqdm import tqdm
+
+
+def parse_args():
+    parser = argparse.ArgumentParser("Convert time series to matrix")
+
+    parser.add_argument("--dataset", default='synthetic', type=str,
+                        choices=['synthetic', 'sensoted', 'SMAP', 'MSL'])
+    parser.add_argument("--noise_level", default=20, type=int,
+                        choices=[0, 10, 20, 30])
+
+    parser.add_argument("--input_dir", default='./data/data_ts/', type=str)
+    parser.add_argument("--output_dir", default='./data/data_matrix/', type=str)
+    parser.add_argument("--time_step", default=10)
+    parser.add_argument("--window", default=10)
+
+    return parser.parse_args()
 
 
 def normalization(ts):
@@ -13,7 +31,7 @@ def ts2matrix(data, window, time_step):
     n_features = data.shape[0]
     data_length = data.shape[1]
     matrix = []
-    for t in range(0, data_length, time_step):
+    for t in tqdm(range(0, data_length, time_step)):
         matrix_t = np.zeros((n_features, n_features))
         if t > window:
             for i in range(n_features):
@@ -26,28 +44,23 @@ def ts2matrix(data, window, time_step):
     return matrix
 
 
-def parse_args():
-    parser = argparse.ArgumentParser("Convert time series to matrix")
-
-    parser.add_argument("--dataset", default='synthetic', type=str,
-                        choices=['synthetic', 'sensoted', 'SMAP', 'MSL'])
-    parser.add_argument("--noise_level", default=0.2, type=int,
-                        choices=[0, 0.1, 0.2, 0.3])
-
-    parser.add_argument("--input_dir", default='../data/data_ts/', type=str)
-    parser.add_argument("--output_dir", default='../data/data_matrix/', type=str)
-    parser.add_argument("--time_step", default=10)
-    parser.add_argument("--window", default=10)
-
-    return parser.parse_args()
-
-
 def main():
     args = parse_args()
-    data = np.load(args.input_dir).T
-    data_normalized = normalization(data)
-    matrix = ts2matrix(data_normalized, args.window)
-    np.save(args.output_dir + str(args.window), matrix)
+    if not os.path.exists(os.path.join(args.input_dir, args.dataset)):
+        os.makedirs(os.path.join(args.input_dir, args.dataset))
+
+    if not os.path.exists(os.path.join(args.output_dir, args.dataset)):
+        os.makedirs(os.path.join(args.output_dir, args.dataset))
+
+    if args.dataset == 'synthetic':
+        in_PATH = os.path.join(args.input_dir, args.dataset, f'{args.noise_level}.npy')
+        data = np.load(in_PATH)
+        data_normalized = normalization(data)
+        matrix = ts2matrix(data_normalized, args.window, args.time_step)
+        out_PATH = os.path.join(args.output_dir, args.dataset, f'{args.noise_level}_win{args.window}.npy')
+        np.save(out_PATH, matrix)
+
+
 
 
 if __name__ == "__main__":

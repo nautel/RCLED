@@ -28,8 +28,14 @@ def ts2matrix(data, window, time_step):
 
 def parse_args():
     parser = argparse.ArgumentParser("Convert time series to matrix")
-    parser.add_argument("--input_dir", default='./data/data_ts/X.npy', type=str)
-    parser.add_argument("--output_dir", default='./data/data_matrix/', type=str)
+
+    parser.add_argument("--dataset", default='synthetic', type=str,
+                        choices=['synthetic', 'sensoted', 'SMAP', 'MSL'])
+    parser.add_argument("--noise_level", default=0.2, type=int,
+                        choices=[0, 0.1, 0.2, 0.3])
+
+    parser.add_argument("--input_dir", default='../data/data_ts/', type=str)
+    parser.add_argument("--output_dir", default='../data/data_matrix/', type=str)
     parser.add_argument("--time_step", default=10)
     parser.add_argument("--window", default=10)
 

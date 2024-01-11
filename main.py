@@ -103,66 +103,113 @@ def train_model(args):
     print('Training time {}'.format(total_time_str))
 
 
-def train_one_epoch(model, rcled_loss, data_loader,
-                    optimizer, epoch, args):
+def train_one_epoch(model, l2_loss, l1_loss, data_loader,
+                    optimizer,lr_schedule, wd_schedule, epoch,
+                    args):
+    for it, (inputs, _) in enumerate(data_loader):
+        it = len(data_loader) * epoch + it # global training iteration
+        for i, param_group in enumerate(optimizer.param_groups):
+            param_group["lr"] = lr_schedule[it]
+            if i == 0: # only the first group is regularired
+                param_group["weight_decay"] = wd_schedule[it]
+
+        # move data to gpu
+        X_t = [ten.cuda(non_blocking=True) for ten in inputs]
+        L_t = torch.zeros(X_t.shape)
+        S_t = torch.zeros(X_t.shape)
+        LS = X_t.copy()
+        # model forwad passes + compute robust loss
+        L_t = X_t - S_t
+        # minimize the autoencoder
+        ED_loss = l2_loss(L_t[-1], model(L_t))
+        # model update
+        optimizer.zero_grad()
+        ED_loss.backward()
+        optimizer.step()
+        L_t = model(L_t)
+        # Set the S_t
+        S_t = X_t - L_t
+        MU = S_t.size / (4.0 * np.linalg.norm(S_t.reshape(-1, s.shape[-1] * S_t.shape[-1]), 1))
+        S_t = shrink(args.lamda / MU, S_t.reshape(-1)).reshape(S_t.shape)
+
+        c_1 = torch.norm((X_t - L_t - S_t), 'fro') / XF_norm
+        c_2 = np.min([mu, np.sqrt(mu)]) * torch.norm(LS - L_t - S_t) / XF_norm
+
+        LS = L_t + S_t
+
+
+        if c_1 < args.error_limit and c_2 < args.error_limit:
+            print("early break")
+            continue
+    print("c1 :", c_1)
+    print("c2 :", c_2)
 
 
 
-s = torch.zeros([5, 3, 30, 30])
-    ls = torch.zeros([5, 3, 30, 30])
-    model = model.to(device_name)
-    for epoch in range(epoch):
-        train_loss_sum, n = 0.0, 0
-        for x in tqdm(dataloader):
-            x = x.squeeze()
 
-            x = x.to(device_name)
-            s = s.to(device_name)
-            lt = ls.to(device_name)
-            ld = x - s
 
-            model.train()
-            loss = torch.mean((model(ld) - ld[-1].unsqueeze(0)) ** 2)
-            train_loss_sum += loss
+def shrink():
 
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
 
-            model.eval()
-            ld_t = model(ld)
-            ld = trans_one2five(ld_t)
 
-            s = x - ld
-            s = s.detach().cpu().numpy()
 
-            mu = s.size / (4.0 * np.linalg.norm(s.reshape(-1, s.shape[-1] * s.shape[-1]), 1))
-            s = shrink(lamda / mu, s.reshape(-1)).reshape(x.shape)
-            #np.save(f'C:/Users/C19 - Admin/PycharmProjects/rmscred_v4/data_rmscred/sensor_tech/noise_train/s_lam{lam}.npy',s)
-            np.save(f'C:/Users/C19 - Admin/PycharmProjects/rmscred_v4/data_rmscred/sensor_tech/noise_train/s_syn_lam{lamda}.npy', s)
-            XF_norm = torch.norm(x, 'fro')
 
-            s = torch.from_numpy(s)
-            s = s.to(device_name)
-            ld = ld.to(device_name)
-            x = x.to(device_name)
-            XF_norm = XF_norm.to(device_name)
 
-            c1 = torch.norm((x - ld - s), 'fro') / XF_norm
-            c2 = np.min([mu, np.sqrt(mu)]) * torch.norm(ls - ld - s) / XF_norm
+    s = torch.zeros([5, 3, 30, 30])
+        ls = torch.zeros([5, 3, 30, 30])
+        model = model.to(device_name)
+        for epoch in range(epoch):
+            train_loss_sum, n = 0.0, 0
+            for x in tqdm(dataloader):
+                x = x.squeeze()
 
-            ls = ld + s
-            if c1 < error and c2 < error:
-                print("early break")
-                continue
+                x = x.to(device_name)
+                s = s.to(device_name)
+                lt = ls.to(device_name)
+                ld = x - s
 
-            n += 1
-            # print("[Epoch %d/%d][Batch %d/%d] [loss: %f]" % (epoch+1, epochs, n, len(dataLoader), l.item()))
-        if verbose:
-            print("c1 :", c1)
-            print("c2 :", c2)
+                model.train()
+                loss = torch.mean((model(ld) - ld[-1].unsqueeze(0)) ** 2)
+                train_loss_sum += loss
 
-        print("[Epoch %d/%d] [loss: %f]" % (epoch + 1, epoch, train_l_sum / n))
+                optimizer.zero_grad()
+                loss.backward()
+                optimizer.step()
+
+                model.eval()
+                ld_t = model(ld)
+                ld = trans_one2five(ld_t)
+
+                s = x - ld
+                s = s.detach().cpu().numpy()
+
+                mu = s.size / (4.0 * np.linalg.norm(s.reshape(-1, s.shape[-1] * s.shape[-1]), 1))
+                s = shrink(lamda / mu, s.reshape(-1)).reshape(x.shape)
+                #np.save(f'C:/Users/C19 - Admin/PycharmProjects/rmscred_v4/data_rmscred/sensor_tech/noise_train/s_lam{lam}.npy',s)
+                np.save(f'C:/Users/C19 - Admin/PycharmProjects/rmscred_v4/data_rmscred/sensor_tech/noise_train/s_syn_lam{lamda}.npy', s)
+                XF_norm = torch.norm(x, 'fro')
+
+                s = torch.from_numpy(s)
+                s = s.to(device_name)
+                ld = ld.to(device_name)
+                x = x.to(device_name)
+                XF_norm = XF_norm.to(device_name)
+
+                c1 = torch.norm((x - ld - s), 'fro') / XF_norm
+                c2 = np.min([mu, np.sqrt(mu)]) * torch.norm(ls - ld - s) / XF_norm
+
+                ls = ld + s
+                if c1 < error and c2 < error:
+                    print("early break")
+                    continue
+
+                n += 1
+                # print("[Epoch %d/%d][Batch %d/%d] [loss: %f]" % (epoch+1, epochs, n, len(dataLoader), l.item()))
+            if verbose:
+                print("c1 :", c1)
+                print("c2 :", c2)
+
+            print("[Epoch %d/%d] [loss: %f]" % (epoch + 1, epoch, train_l_sum / n))
 
 def train_noise(dataloader, model, optimizer, epochs, device_name, lam, noise_factor, verbose=True, error=0.0001):
     model = model.to(device_name)

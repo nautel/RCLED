@@ -1,0 +1,29 @@
+data:
+  name:  synthetic #SMAP #MSL
+  data_dir: data/signature_matrix/
+  data_label: data/labeled_anomalies/
+  batch_size: 5
+  trajectory_steps: 10000
+
+
+synthetic:
+  ts_lengths: 20000
+  num_vars: 30
+  noise_level: 20
+  noise_variance: 1
+  noise_mean: 0
+  output_dir: '/data/time_series/synthetic/'
+
+signature_matrix:
+  input_dir: '/data/time_series/'
+  output_dir: '/data/signature_matrix/'
+  time_step: 10
+  window: 10
+
+
+
+
+model:
+  checkpoint_dir: checkpoints/MVTec
+  checkpoint_name: weights
+  epoch: 5

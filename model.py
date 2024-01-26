@@ -1,3 +1,7 @@
+import math
+from abc import abstractmethod
+
+import numpy as np
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
@@ -120,18 +124,19 @@ def attention_weight(ConvLstm_out):
     return attention_w
 
 class CnnEncoder(nn.Module):
-    def __init__(self, in_channels_encoder):
+    def __init__(self, in_num_vars, in_channels_encoder):
         super(CnnEncoder, self).__init__()
+        # đầu vào, đầu ra, kernel, stride, padding
         self.conv1 = nn.Sequential(
-            nn.Conv2d(in_channels_encoder, 32, 3, (1, 1), 1),
+            nn.Conv2d(in_channels_encoder, 32, 3, (1, 1), "SAME"),
             nn.SELU()
         )
         self.conv2 = nn.Sequential(
-            nn.Conv2d(32, 64, 3, (2, 2), 1),
+            nn.Conv2d(32, 64, 3, (2, 2), "SAME"),
             nn.SELU()
         )
         self.conv3 = nn.Sequential(
-            nn.Conv2d(64, 128, 2, (2, 2), 1),
+            nn.Conv2d(64, 128, 2, (2, 2), "SAME"),
             nn.SELU()
         )
         self.conv4 = nn.Sequential(
@@ -181,7 +186,7 @@ class CnnDecoder(nn.Module):
             nn.SELU()
         )
         self.deconv3 = nn.Sequential(
-            nn.ConvTranspose2d(256, 64, 2, 2, 1, 1),
+            nn.ConvTranspose2d(256, 64, kernel_size=2, padding=2, stride=1, output_padding=1),
             nn.SELU()
         )
         self.deconv2 = nn.Sequential(
@@ -219,6 +224,23 @@ class autoencoder(nn.Module):
         gen_x = self.cnn_decoder(conv1_lstm_out, conv2_lstm_out,
                                  conv3_lstm_out, conv4_lstm_out)
         return gen_x
+
+
+class RCLEDmodel(nn.Module):
+    # Autoencoder model
+    def __init__(self,
+                 num_vars,
+                 in_channels_encoder,
+                 ):
+        self.dtype = torch.float32
+        super().__init__()
+
+        self.cnn_encoder = CnnEncoder(num_vars, in_channels_encoder)
+
+    def forward(self, x):
+        conv1_out, conv2_out, conv3_out, conv4_out = self.cnn_encoder(x)
+
+
 
 
 if __name__ == '__main__':

@@ -1,20 +1,51 @@
-import torch
+from collections import defaultdict, deque
+import torch.distributed as dist
 
 
-def shrink(epsilon, input):
-    x = input.copy()
-    t1 = x > epsilon
-    t2 = x < epsilon
-    t3 = x > -epsilon
-    t4 = x < -epsilon
-    x[t2 & t3] = 0
-    x[t1] = x[t1] - epsilon
-    x[t4] = x[t4] + epsilon
-    return x
 
-def trans_one2five(x_in):
-    x_1 = torch.roll(x_in, 1, dims=0)
-    x_2 = torch.roll(x_in, 2, dims=0)
-    x_3 = torch.roll(x_in, 3, dims=0)
-    x_4 = torch.roll(x_in, 4, dims=0)
-    return torch.cat((x_4, x_3, x_2, x_1, x_in), 0)
+class SmoothedValue(object):
+    """
+    English:
+    Track a series of values and provide access to smoothed values over a
+    window or the global series average.
+
+    Tiếng Việt:
+    Theo dõi các giá trị và cung cấp quyền truy cập đến các giá trị được làm mịn thông qua
+    một cửa sổ hoặc giá trị trung bình toàn cục của chuỗi
+    """
+    def __init__(self, window_size=20, fmt=None):
+        # fmt là format của chuỗi đầu vào
+        if fmt is None:
+            fmt = "{median:.6f ({global_avg:.6f})}"
+        # deque: chỉ giữ lại giá trị gần đây nhất với kích thước chỉ định
+        self.deque = deque(maxlen=window_size)
+        self.total = 0.0
+        self.count = 0
+        self.fmt = fmt
+
+    def update(self, value, n=1):
+        # cập nhập chuỗi deque với n giá trị mới
+        self.deque.append(value)
+        self.count += n
+        self.total += value * n
+
+    def synchronize_between_processes(self):
+        # đồng bộ hóa các quá trình khác nhau
+        if not is_dist_avail_and_initialized():
+            return
+
+
+
+
+
+class MetricLogger(object):
+    def __init__(self, delimiter="\t"):
+        self.meters = defaultdict(SmoothedValue)
+
+
+def is_dist_avail_and_initialized():
+    if not dist.is_available():
+        return False
+    if not dist.is_initialized():
+        return False
+    return True

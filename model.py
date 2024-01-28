@@ -95,7 +95,7 @@ class ConvLSTM(nn.Module):
             if step in self.effective_step:
                 outputs.append(x)
 
-#        return outputs
+        #        return outputs
         return outputs, (x, new_c)
 
 
@@ -111,36 +111,25 @@ def attention(ConvLstm_out):
     convLstmOut = torch.reshape(convLstmOut, (cl_out_shape[1], cl_out_shape[2], cl_out_shape[3]))
     return convLstmOut
 
-def attention_weight(ConvLstm_out):
-    attention_w = []
-    for k in range(5):
-        attention_w.append(torch.sum(torch.mul(ConvLstm_out[k], ConvLstm_out[-1])) / 5)
-    m = nn.Softmax(dim=0)
-    attention_w = torch.reshape(m(torch.stack(attention_w)), (-1, 5))
-    cl_out_shape = ConvLstm_out.shape
-    ConvLstm_out = torch.reshape(ConvLstm_out, (5, -1))
-    convLstmOut = torch.matmul(attention_w, ConvLstm_out)
-    convLstmOut = torch.reshape(convLstmOut, (cl_out_shape[1], cl_out_shape[2], cl_out_shape[3]))
-    return attention_w
 
 class CnnEncoder(nn.Module):
-    def __init__(self, in_num_vars, in_channels_encoder):
+    def __init__(self, in_channels_encoder, paddings):
         super(CnnEncoder, self).__init__()
         # đầu vào, đầu ra, kernel, stride, padding
         self.conv1 = nn.Sequential(
-            nn.Conv2d(in_channels_encoder, 32, 3, (1, 1), "SAME"),
+            nn.Conv2d(in_channels_encoder, 32, kernel_size=3, stride=1, padding=paddings[0]),
             nn.SELU()
         )
         self.conv2 = nn.Sequential(
-            nn.Conv2d(32, 64, 3, (2, 2), "SAME"),
+            nn.Conv2d(32, 64, kernel_size=3, stride=(2, 2), padding=paddings[1]),
             nn.SELU()
         )
         self.conv3 = nn.Sequential(
-            nn.Conv2d(64, 128, 2, (2, 2), "SAME"),
+            nn.Conv2d(64, 128, kernel_size=2, stride=(2, 2), padding=paddings[2]),
             nn.SELU()
         )
         self.conv4 = nn.Sequential(
-            nn.Conv2d(128, 256, 2, (2, 2), 0),
+            nn.Conv2d(128, 256, kernel_size=2, stride=(2, 2), padding=paddings[3]),
             nn.SELU()
         )
 
@@ -166,35 +155,53 @@ class Conv_LSTM(nn.Module):
 
     def forward(self, conv1_out, conv2_out,
                 conv3_out, conv4_out):
-        conv1_lstm_out = self.conv1_lstm(conv1_out)
-        conv1_lstm_out_att = attention(conv1_lstm_out[0][0])
-        conv2_lstm_out = self.conv2_lstm(conv2_out)
-        conv2_lstm_out_att = attention(conv2_lstm_out[0][0])
-        conv3_lstm_out = self.conv3_lstm(conv3_out)
-        conv3_lstm_out_att = attention(conv3_lstm_out[0][0])
-        conv4_lstm_out = self.conv4_lstm(conv4_out)
-        conv4_lstm_out_att = attention(conv4_lstm_out[0][0])
-        return conv1_lstm_out_att.unsqueeze(0), conv2_lstm_out_att.unsqueeze(0), conv3_lstm_out_att.unsqueeze(
-            0), conv4_lstm_out_att.unsqueeze(0)
+        conv1_lstm_out_att_5_step = []
+        conv2_lstm_out_att_5_step = []
+        conv3_lstm_out_att_5_step = []
+        conv4_lstm_out_att_5_step = []
+        for i in range(5):
+            conv1_lstm_out = self.conv1_lstm(conv1_out)
+            conv1_lstm_out_att = attention(conv1_lstm_out[0][0])
+            conv1_lstm_out_att_5_step.append(conv1_lstm_out_att.unsqueeze(0))
+
+            conv2_lstm_out = self.conv2_lstm(conv2_out)
+            conv2_lstm_out_att = attention(conv2_lstm_out[0][0])
+            conv2_lstm_out_att_5_step.append(conv2_lstm_out_att.unsqueeze(0))
+
+            conv3_lstm_out = self.conv3_lstm(conv3_out)
+            conv3_lstm_out_att = attention(conv3_lstm_out[0][0])
+            conv3_lstm_out_att_5_step.append(conv3_lstm_out_att.unsqueeze(0))
+
+            conv4_lstm_out = self.conv4_lstm(conv4_out)
+            conv4_lstm_out_att = attention(conv4_lstm_out[0][0])
+            conv4_lstm_out_att_5_step.append(conv4_lstm_out_att.unsqueeze(0))
+
+        return torch.cat(conv1_lstm_out_att_5_step, dim=0), \
+               torch.cat(conv2_lstm_out_att_5_step, dim=0), \
+               torch.cat(conv3_lstm_out_att_5_step, dim=0), \
+               torch.cat(conv4_lstm_out_att_5_step, dim=0)
 
 
 class CnnDecoder(nn.Module):
-    def __init__(self, in_channels):
+    def __init__(self, in_channels, paddings, output_paddings):
         super(CnnDecoder, self).__init__()
         self.deconv4 = nn.Sequential(
-            nn.ConvTranspose2d(in_channels, 128, 2, 2, 0, 0),
+            nn.ConvTranspose2d(in_channels, 128, kernel_size=2, stride=2, padding=paddings[0],
+                               output_padding=output_paddings[0]),
             nn.SELU()
         )
         self.deconv3 = nn.Sequential(
-            nn.ConvTranspose2d(256, 64, kernel_size=2, padding=2, stride=1, output_padding=1),
+            nn.ConvTranspose2d(256, 64, kernel_size=2, stride=2, padding=paddings[1],
+                               output_padding=output_paddings[1]),
             nn.SELU()
         )
         self.deconv2 = nn.Sequential(
-            nn.ConvTranspose2d(128, 32, 3, 2, 1, 1),
+            nn.ConvTranspose2d(128, 32, kernel_size=3, stride=2, padding=paddings[2],
+                               output_padding=output_paddings[2]),
             nn.SELU()
         )
         self.deconv1 = nn.Sequential(
-            nn.ConvTranspose2d(64, 3, 3, 1, 1, 0),
+            nn.ConvTranspose2d(64, 3, kernel_size=3, stride=1, padding=paddings[3], output_padding=output_paddings[3]),
             nn.SELU()
         )
 
@@ -209,12 +216,34 @@ class CnnDecoder(nn.Module):
         return deconv1
 
 
-class autoencoder(nn.Module):
-    def __init__(self, in_channels_encoder, in_channels_decoder):
-        super(MSCRED, self).__init__()
-        self.cnn_encoder = CnnEncoder(in_channels_encoder)
+class RCLEDmodel(nn.Module):
+    # Autoencoder model
+    def __init__(self,
+                 num_vars,
+                 in_channels_ENCODER,
+                 in_channels_DECODER
+                 ):
+        self.dtype = torch.float32
+        super().__init__()
+        if num_vars == 25:
+            ENCODER_paddings = [1, 1, 1, 1]
+
+            DECODER_paddings = [1, 1, 1, 1]
+            DECODER_out_paddings = [1, 1, 0, 0]
+        if num_vars == 30:
+            ENCODER_paddings = [1, 1, 1, 0]
+
+            DECODER_paddings = [0, 1, 1, 1]
+            DECODER_out_paddings = [0, 1, 1, 0]
+        if num_vars == 55:
+            ENCODER_paddings = [1, 1, 1, 1]
+
+            DECODER_paddings = [1, 1, 1, 1]
+            DECODER_out_paddings = [1, 0, 0, 0]
+
+        self.cnn_encoder = CnnEncoder(in_channels_ENCODER, ENCODER_paddings)
         self.conv_lstm = Conv_LSTM()
-        self.cnn_decoder = CnnDecoder(in_channels_decoder)
+        self.cnn_decoder = CnnDecoder(in_channels_DECODER, DECODER_paddings, DECODER_out_paddings)
 
     def forward(self, x):
         conv1_out, conv2_out, conv3_out, conv4_out = self.cnn_encoder(x)
@@ -224,23 +253,6 @@ class autoencoder(nn.Module):
         gen_x = self.cnn_decoder(conv1_lstm_out, conv2_lstm_out,
                                  conv3_lstm_out, conv4_lstm_out)
         return gen_x
-
-
-class RCLEDmodel(nn.Module):
-    # Autoencoder model
-    def __init__(self,
-                 num_vars,
-                 in_channels_encoder,
-                 ):
-        self.dtype = torch.float32
-        super().__init__()
-
-        self.cnn_encoder = CnnEncoder(num_vars, in_channels_encoder)
-
-    def forward(self, x):
-        conv1_out, conv2_out, conv3_out, conv4_out = self.cnn_encoder(x)
-
-
 
 
 if __name__ == '__main__':

@@ -6,10 +6,16 @@ import pandas as pd
 import numpy as np
 from generating_syn_dataset import *
 from generating_signature_matrix import *
+from model import RCLEDmodel
+from train import trainer
 
 def build_model(config):
-    model = RCLED()
-
+    if config.data.name == "synthetic":
+        model = RCLEDmodel(num_vars=30, in_channels_ENCODER=3, in_channels_DECODER=256)
+    if config.data.name == "SMAP":
+        model = RCLEDmodel(num_vars=25, in_channels_ENCODER=3, in_channels_DECODER=256)
+    if config.data.name == "MSL":
+        model = RCLEDmodel(num_vars=55, in_channels_ENCODER=3, in_channels_DECODER=256)
     return model
 
 def parse_args():

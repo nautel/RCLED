@@ -201,7 +201,8 @@ class CnnDecoder(nn.Module):
             nn.SELU()
         )
         self.deconv1 = nn.Sequential(
-            nn.ConvTranspose2d(64, 3, kernel_size=3, stride=1, padding=paddings[3], output_padding=output_paddings[3]),
+            nn.ConvTranspose2d(64, 3, kernel_size=3, stride=1, padding=paddings[3],
+                               output_padding=output_paddings[3]),
             nn.SELU()
         )
 

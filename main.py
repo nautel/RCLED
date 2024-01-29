@@ -9,6 +9,7 @@ from generating_signature_matrix import *
 from model import RCLEDmodel
 from train import trainer
 
+
 def build_model(config):
     if config.data.name == "synthetic":
         model = RCLEDmodel(num_vars=30, in_channels_ENCODER=3, in_channels_DECODER=256)
@@ -18,16 +19,17 @@ def build_model(config):
         model = RCLEDmodel(num_vars=55, in_channels_ENCODER=3, in_channels_DECODER=256)
     return model
 
+
 def parse_args():
     parser = argparse.ArgumentParser('RCLED')
     parser.add_argument('-cfg', '--config',
                         default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.yaml'),
                         help='config file')
     parser.add_argument('--preparing',
-                        default=True,
+                        default=False,
                         help='Preparing data')
     parser.add_argument('--train',
-                        default=False,
+                        default=True,
                         help='Train the robust model')
     parser.add_argument('--detection',
                         default=False,
@@ -43,9 +45,11 @@ def synthetic(config):
         os.makedirs(config.synthetic.output_dir)
 
     anomalies = pd.read_csv(os.path.join(config.data.data_label, 'synthetic.csv'))
-    s = generate_time_series_dataset(config.synthetic.num_vars, config.synthetic.ts_lengths, config.synthetic.noise_level)
+    s = generate_time_series_dataset(config.synthetic.num_vars, config.synthetic.ts_lengths,
+                                     config.synthetic.noise_level)
     s = adding_anomaly(s, anomalies)
     np.save(config.synthetic.output_dir + f'/NoiseLevel{config.synthetic.noise_level}', s)
+
 
 def preparing(config):
     np.random.seed(42)
@@ -57,18 +61,21 @@ def preparing(config):
         os.makedirs(os.path.join(config.signature_matrix.output_dir, config.data.name))
 
     if config.data.name == 'synthetic':
-        PATH = os.path.join(config.signature_matrix.input_dir, config.data.name, f'NoiseLevel{config.synthetic.noise_level}.npy')
+        PATH = os.path.join(config.signature_matrix.input_dir, config.data.name,
+                            f'NoiseLevel{config.synthetic.noise_level}.npy')
         data = np.load(PATH)
         data_normalized = normalization(data)
         matrix = ts2matrix(data_normalized, config.signature_matrix.window, config.signature_matrix.time_step)
-        SAVE_PATH = os.path.join(config.signature_matrix.output_dir, config.data.name, f'NoiseLevel{config.synthetic.noise_level}_Window{config.signature_matrix.window}.npy')
+        SAVE_PATH = os.path.join(config.signature_matrix.output_dir, config.data.name,
+                                 f'NoiseLevel{config.synthetic.noise_level}_Window{config.signature_matrix.window}.npy')
         np.save(SAVE_PATH, matrix)
+
 
 def train(config):
     torch.manual_seed(42)
     np.random.seed(42)
     model = build_model(config)
-    print("Num params: ", sum(p.numel() for p in model.parameter()))
+    print("Num params: ", sum(p.numel() for p in model.parameters()))
     model = model.to(config.model.device)
     model.train()
     # sao chép và phân phối mô hình vào nhiều GPU nếu có
@@ -77,11 +84,11 @@ def train(config):
 
 
 if __name__ == "__main__":
-    #torch.cuda.empty_cache()
+    # torch.cuda.empty_cache()
     args = parse_args()
     config = OmegaConf.load(args.config)
     print("Datasets: ", config.data.name)
-    #torch.manuel_seed(42)
+    # torch.manuel_seed(42)
     np.random.seed(42)
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(42)
@@ -92,12 +99,6 @@ if __name__ == "__main__":
             preparing(config)
         else:
             preparing(config)
-    if args.training:
+    if args.train:
         print('Training ...')
         train(config)
-
-
-
-
-
-

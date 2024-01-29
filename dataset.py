@@ -12,10 +12,11 @@ def DatasetMaker(root, config):
             name = f'NoiseLevel{config.synthetic.noise_level}_Window{window}.npy'
             FILE_NAME.append(name)
 
-    for file in FILE_NAME:
-        PATH = os.path.join(root, 'synthetic', file)
+    for name in FILE_NAME:
+        PATH = os.path.join(root, 'synthetic', name)
         matrix = np.load(PATH)
         data.append(matrix)
         dataset = torch.from_numpy(np.array(data)).float()
+
     dataset = np.transpose(dataset, (1, 0, 2, 3))
     return dataset

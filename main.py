@@ -26,10 +26,10 @@ def parse_args():
                         default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.yaml'),
                         help='config file')
     parser.add_argument('--preparing',
-                        default=True,
+                        default=False,
                         help='Preparing data')
     parser.add_argument('--train',
-                        default=False,
+                        default=True,
                         help='Train the robust model')
     parser.add_argument('--detection',
                         default=False,
@@ -82,6 +82,15 @@ def train(config):
     model = torch.nn.DataParallel(model)
     trainer(model, config.data.name, config)
 
+
+def detection(config):
+    model = build_model(config)
+    checkpoint = torch.load(os.path.join(os.getcwd()), config.model.checkpoint_dir, config.data.category, str(config.model.load_checkpoint))
+    model.load_state_dict(checkpoint)
+    model.to(config.model.device)
+    model.eval()
+    predict_anomalies = Anomaly_Detection(model, config)
+    
 
 if __name__ == "__main__":
     # torch.cuda.empty_cache()

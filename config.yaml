@@ -20,7 +20,7 @@ signature_matrix:
   input_dir: './data/time_series/'
   output_dir: './data/signature_matrix/'
   time_step: 10
-  window: 30
+  window: 60 #10 #30 #60
 
 
 model:

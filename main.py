@@ -26,10 +26,10 @@ def parse_args():
                         default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.yaml'),
                         help='config file')
     parser.add_argument('--preparing',
-                        default=False,
+                        default=True,
                         help='Preparing data')
     parser.add_argument('--train',
-                        default=True,
+                        default=False,
                         help='Train the robust model')
     parser.add_argument('--detection',
                         default=False,
@@ -54,8 +54,8 @@ def synthetic(config):
 def preparing(config):
     np.random.seed(42)
     print("Generating signature matrix from time series")
-    if not os.path.exists(os.path.join(config.signature_matrix.input_dir, config.data.name)):
-        os.makedirs(os.path.join(config.signature_matrix.input_dir, config.data.name))
+#    if not os.path.exists(os.path.join(config.signature_matrix.input_dir, config.data.name)):
+#       os.makedirs(os.path.join(config.signature_matrix.input_dir, config.data.name))
 
     if not os.path.exists(os.path.join(config.signature_matrix.output_dir, config.data.name)):
         os.makedirs(os.path.join(config.signature_matrix.output_dir, config.data.name))

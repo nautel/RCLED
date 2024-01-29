@@ -13,12 +13,12 @@ synthetic:
   noise_level: 20
   noise_variance: 1
   noise_mean: 0
-  output_dir: '/data/time_series/synthetic/'
+  output_dir: './data/time_series/synthetic/'
 
 
 signature_matrix:
-  input_dir: '/data/time_series/'
-  output_dir: '/data/signature_matrix/'
+  input_dir: './data/time_series/'
+  output_dir: './data/signature_matrix/'
   time_step: 10
   window: 30
 

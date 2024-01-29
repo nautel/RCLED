@@ -11,7 +11,7 @@ from train import trainer
 
 
 def build_model(config):
-    if config.data.name == "synthetic":
+    if config.data.name == "NoiseLevel20":
         model = RCLEDmodel(num_vars=30, in_channels_ENCODER=3, in_channels_DECODER=256)
     if config.data.name == "SMAP":
         model = RCLEDmodel(num_vars=25, in_channels_ENCODER=3, in_channels_DECODER=256)
@@ -40,11 +40,11 @@ def parse_args():
 
 def synthetic(config):
     np.random.seed(42)
-    print("Generating synthetic time series")
+    print("Generating NoiseLevel20 time series")
     if not os.path.exists(config.synthetic.output_dir):
         os.makedirs(config.synthetic.output_dir)
 
-    anomalies = pd.read_csv(os.path.join(config.data.data_label, 'synthetic.csv'))
+    anomalies = pd.read_csv(os.path.join(config.data.data_label, 'NoiseLevel20.csv'))
     s = generate_time_series_dataset(config.synthetic.num_vars, config.synthetic.ts_lengths,
                                      config.synthetic.noise_level)
     s = adding_anomaly(s, anomalies)
@@ -60,7 +60,7 @@ def preparing(config):
     if not os.path.exists(os.path.join(config.signature_matrix.output_dir, config.data.name)):
         os.makedirs(os.path.join(config.signature_matrix.output_dir, config.data.name))
 
-    if config.data.name == 'synthetic':
+    if config.data.name == 'NoiseLevel20':
         PATH = os.path.join(config.signature_matrix.input_dir, config.data.name,
                             f'NoiseLevel{config.synthetic.noise_level}.npy')
         data = np.load(PATH)
@@ -80,7 +80,7 @@ def train(config):
     model.train()
     # sao chép và phân phối mô hình vào nhiều GPU nếu có
     model = torch.nn.DataParallel(model)
-    trainer(model, config.data.name, config)
+    trainer(model, config.data.category, config)
 
 
 def detection(config):
@@ -103,7 +103,7 @@ if __name__ == "__main__":
         torch.cuda.manual_seed_all(42)
     if args.preparing:
         print('Preparing ...')
-        if config.data.name == 'synthetic':
+        if config.data.name == 'NoiseLevel20':
             synthetic(config)
             preparing(config)
         else:

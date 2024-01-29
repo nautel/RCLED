@@ -1,4 +1,4 @@
-# Unsupervised Anomaly Detection with Robust Convolutional LSTM Encoder Decoder
+# Unsupervised detecting anomalies in multivariate time series by Robust Convolutional LSTM Encoder–decoder (RCLED)
 ## Documentation
 
 ## Traing

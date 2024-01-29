@@ -60,6 +60,11 @@ def trainer(model, category, config):
         for step, X in tqdm(enumerate(data_loader)):
             L = torch.zeros(X.shape)
             S = torch.zeros(X.shape)
+
+            X = X.to(config.model.device)
+            L = L.to(config.model.device)
+            S = S.to(config.model.device)
+
             mu = torch.numel(X) / (4.0 * torch.norm(X, 1))
             XFnorm = torch.norm(X, 'fro')
             print("shrink parameter:", config.hyperparameter.lamda / mu)
@@ -82,7 +87,7 @@ def trainer(model, category, config):
                 model.eval()
                 L = model(L)
                 # alternating project, now project to S
-                S = shrink(config.hyperparameter.lamda / mu, (X - L).reshape(X.size)).reshape(X.shape)
+                S = shrink(config.hyperparameter.lamda / mu, (X - L).reshape(X.numel())).reshape(X.size())
                 ########################################
                 c1 = torch.norm(X - L - S, 'fro') / XFnorm
                 c2 = np.min([mu, np.sqrt(mu)]) * torch.norm(LS0 - L - S) / XFnorm

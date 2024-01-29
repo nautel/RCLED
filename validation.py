@@ -24,3 +24,4 @@ def trans_one2five(x_in):
     x_3 = torch.roll(x_in, 3, dims=0)
     x_4 = torch.roll(x_in, 4, dims=0)
     return torch.cat((x_4, x_3, x_2, x_1, x_in), 0)
+

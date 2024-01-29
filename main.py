@@ -83,6 +83,15 @@ def train(config):
     trainer(model, config.data.name, config)
 
 
+def detection(config):
+    model = build_model(config)
+    checkpoint = torch.load(os.path.join(os.getcwd()), config.model.checkpoint_dir, config.data.category, str(config.model.load_checkpoint))
+    model.load_state_dict(checkpoint)
+    model.to(config.model.device)
+    model.eval()
+    predict_anomalies = Anomaly_Detection(model, config)
+
+
 if __name__ == "__main__":
     # torch.cuda.empty_cache()
     args = parse_args()

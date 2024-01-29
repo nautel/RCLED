@@ -17,5 +17,5 @@ def DatasetMaker(root, config):
         matrix = np.load(PATH)
         data.append(matrix)
         dataset = torch.from_numpy(np.array(data)).float()
-
+    dataset = np.transpose(dataset, (1, 0, 2, 3))
     return dataset

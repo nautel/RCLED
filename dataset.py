@@ -3,20 +3,43 @@ import numpy as np
 import torch
 
 
-def DatasetMaker(root, config):
+def DatasetMaker(root, config, phase):
     # ===================== preparing data ... =====================
+
     data = []
-    if config.data.name == 'NoiseLevel20':
-        FILE_NAME = list()
-        for window in [10, 30, 60]:
-            name = f'NoiseLevel{config.synthetic.noise_level}_Window{window}.npy'
-            FILE_NAME.append(name)
+    train_percent = 0.9
+    if config.data.name == 'synthetic':
+        if phase == 'train' or phase == 'valid':
+            FILE_NAME = list()
+            for window in [10, 30, 60]:
+                name = f'NoiseLevel{config.synthetic.noise_level}_Window{window}.npy'
+                FILE_NAME.append(name)
 
-    for name in FILE_NAME:
-        PATH = os.path.join(root, 'NoiseLevel20', name)
-        matrix = np.load(PATH)
-        data.append(matrix)
-        dataset = torch.from_numpy(np.array(data)).float()
+            for name in FILE_NAME:
+                PATH = os.path.join(root, 'train', 'NoiseLevel20', name)
+                matrix = np.load(PATH)
+                data.append(matrix)
+                dataset = torch.from_numpy(np.array(data)).float()
 
-    dataset = np.transpose(dataset, (1, 0, 2, 3))
+            dataset = np.transpose(dataset, (1, 0, 2, 3))
+            train_length = int((dataset.shape[1]) * train_percent)
+            if phase == 'train':
+                dataset = dataset[:, 0:train_length, :, :]
+            if phase == 'valid':
+                dataset = dataset[:, train_length:, :, :]
+
+        if phase == 'test':
+            FILE_NAME = list()
+            for window in [10, 30, 60]:
+                name = f'NoiseLevel{config.synthetic.noise_level}_Window{window}.npy'
+                FILE_NAME.append(name)
+
+            for name in FILE_NAME:
+                PATH = os.path.join(root, 'test', 'NoiseLevel20', name)
+                matrix = np.load(PATH)
+                data.append(matrix)
+                dataset = torch.from_numpy(np.array(data)).float()
+
+            dataset = np.transpose(dataset, (1, 0, 2, 3))
+
     return dataset

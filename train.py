@@ -30,7 +30,9 @@ def trainer(model, category, config):
     # ===================== preparing data ... =====================
     train_dataset = DatasetMaker(
         root=config.data.data_dir,
-        config=config)
+        config=config,
+        phase='Train'
+    )
 
     data_loader = torch.utils.data.DataLoader(
         train_dataset,

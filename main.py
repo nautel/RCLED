@@ -10,6 +10,9 @@ from model import RCLEDmodel
 from train import trainer
 
 
+# from anomaly_detection import *
+
+
 def build_model(config):
     if config.data.name == "NoiseLevel20":
         model = RCLEDmodel(num_vars=30, in_channels_ENCODER=3, in_channels_DECODER=256)
@@ -44,31 +47,35 @@ def synthetic(config):
     if not os.path.exists(config.synthetic.output_dir):
         os.makedirs(config.synthetic.output_dir)
 
-    anomalies = pd.read_csv(os.path.join(config.data.data_label, 'NoiseLevel20.csv'))
+    anomalies = pd.read_csv(os.path.join(config.data.data_label, 'synthetic.csv'))
     s = generate_time_series_dataset(config.synthetic.num_vars, config.synthetic.ts_lengths,
                                      config.synthetic.noise_level)
+    print(s.shape)
     s = adding_anomaly(s, anomalies)
-    np.save(config.synthetic.output_dir + f'/NoiseLevel{config.synthetic.noise_level}', s)
+    # train
+    np.save(config.synthetic.output_dir + 'train' + f'/NoiseLevel{config.synthetic.noise_level}', s[:, :10000])
+    # test
+    np.save(config.synthetic.output_dir + 'test' + f'/NoiseLevel{config.synthetic.noise_level}', s[:, 10000:])
 
 
 def preparing(config):
     np.random.seed(42)
     print("Generating signature matrix from time series")
-#    if not os.path.exists(os.path.join(config.signature_matrix.input_dir, config.data.name)):
-#       os.makedirs(os.path.join(config.signature_matrix.input_dir, config.data.name))
+    #    if not os.path.exists(os.path.join(config.signature_matrix.input_dir, config.data.name)):
+    #       os.makedirs(os.path.join(config.signature_matrix.input_dir, config.data.name))
+    for phase in ['train', 'test']:
+        if not os.path.exists(os.path.join(config.signature_matrix.output_dir, config.data.name, phase)):
+            os.makedirs(os.path.join(config.signature_matrix.output_dir, config.data.name, phase))
 
-    if not os.path.exists(os.path.join(config.signature_matrix.output_dir, config.data.name)):
-        os.makedirs(os.path.join(config.signature_matrix.output_dir, config.data.name))
-
-    if config.data.name == 'NoiseLevel20':
-        PATH = os.path.join(config.signature_matrix.input_dir, config.data.name,
-                            f'NoiseLevel{config.synthetic.noise_level}.npy')
-        data = np.load(PATH)
-        data_normalized = normalization(data)
-        matrix = ts2matrix(data_normalized, config.signature_matrix.window, config.signature_matrix.time_step)
-        SAVE_PATH = os.path.join(config.signature_matrix.output_dir, config.data.name,
-                                 f'NoiseLevel{config.synthetic.noise_level}_Window{config.signature_matrix.window}.npy')
-        np.save(SAVE_PATH, matrix)
+        if config.data.name == 'synthetic':
+            PATH = os.path.join(config.signature_matrix.input_dir, config.data.name, phase,
+                                f'NoiseLevel{config.synthetic.noise_level}.npy')
+            data = np.load(PATH)
+            data_normalized = normalization(data)
+            matrix = ts2matrix(data_normalized, config.signature_matrix.window, config.signature_matrix.time_step)
+            SAVE_PATH = os.path.join(config.signature_matrix.output_dir, config.data.name, phase,
+                                     f'NoiseLevel{config.synthetic.noise_level}_Window{config.signature_matrix.window}.npy')
+            np.save(SAVE_PATH, matrix)
 
 
 def train(config):
@@ -85,7 +92,8 @@ def train(config):
 
 def detection(config):
     model = build_model(config)
-    checkpoint = torch.load(os.path.join(os.getcwd()), config.model.checkpoint_dir, config.data.category, str(config.model.load_checkpoint))
+    checkpoint = torch.load(os.path.join(os.getcwd()), config.model.checkpoint_dir, config.data.category,
+                            str(config.model.load_checkpoint))
     model.load_state_dict(checkpoint)
     model.to(config.model.device)
     model.eval()
@@ -103,11 +111,12 @@ if __name__ == "__main__":
         torch.cuda.manual_seed_all(42)
     if args.preparing:
         print('Preparing ...')
-        if config.data.name == 'NoiseLevel20':
+        if config.data.name == 'synthetic':
             synthetic(config)
-            preparing(config)
-        else:
             preparing(config)
     if args.train:
         print('Training ...')
         train(config)
+    if args.detection:
+        print('Detecting ...')
+        detection(config)

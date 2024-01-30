@@ -1,6 +1,7 @@
 data:
-  name:  NoiseLevel20 #SMAP #MSL
+  name:  synthetic #SMAP #MSL
   category: NoiseLevel20 #NoiseLevel10
+            #
   data_dir: './data/signature_matrix/'
   data_label: './data/labeled_anomalies/'
   batch_size: 5
@@ -13,7 +14,7 @@ synthetic:
   noise_level: 20
   noise_variance: 1
   noise_mean: 0
-  output_dir: './data/time_series/NoiseLevel20/'
+  output_dir: './data/time_series/synthetic/'
 
 
 signature_matrix:
@@ -44,9 +45,10 @@ hyperparameter:
   lamda: 1
   error_limit: 0.0001
   beta: 1
+  gama: 0.005
 
 
 metric:
   auroc: True
-
   misclassifications: False
+  visualisation: False

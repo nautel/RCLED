@@ -2,15 +2,10 @@ import argparse
 import os.path
 import torch
 from omegaconf import OmegaConf
-import pandas as pd
-import numpy as np
 from generating_syn_dataset import *
 from generating_signature_matrix import *
 from model import RCLEDmodel
 from train import trainer
-
-
-# from anomaly_detection import *
 
 
 def build_model(config):

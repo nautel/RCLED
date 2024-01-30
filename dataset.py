@@ -5,7 +5,6 @@ import torch
 
 def DatasetMaker(root, config, phase):
     # ===================== preparing data ... =====================
-
     data = []
     train_percent = 0.9
     if config.data.name == 'synthetic':
@@ -16,17 +15,18 @@ def DatasetMaker(root, config, phase):
                 FILE_NAME.append(name)
 
             for name in FILE_NAME:
-                PATH = os.path.join(root, 'train', 'NoiseLevel20', name)
+                PATH = os.path.join(root, config.data.name, 'train', name)
                 matrix = np.load(PATH)
                 data.append(matrix)
                 dataset = torch.from_numpy(np.array(data)).float()
-
+                
             dataset = np.transpose(dataset, (1, 0, 2, 3))
-            train_length = int((dataset.shape[1]) * train_percent)
+            train_length = int((dataset.shape[0]) * train_percent)
+
             if phase == 'train':
-                dataset = dataset[:, 0:train_length, :, :]
+                dataset = dataset[:train_length, :, :, :]
             if phase == 'valid':
-                dataset = dataset[:, train_length:, :, :]
+                dataset = dataset[train_length:, :, :, :]
 
         if phase == 'test':
             FILE_NAME = list()
@@ -35,7 +35,7 @@ def DatasetMaker(root, config, phase):
                 FILE_NAME.append(name)
 
             for name in FILE_NAME:
-                PATH = os.path.join(root, 'test', 'NoiseLevel20', name)
+                PATH = os.path.join(root, config.data.name, 'test', name)
                 matrix = np.load(PATH)
                 data.append(matrix)
                 dataset = torch.from_numpy(np.array(data)).float()

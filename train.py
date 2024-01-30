@@ -29,7 +29,7 @@ def trainer(model, category, config):
     train_dataset = DatasetMaker(
         root=config.data.data_dir,
         config=config,
-        phase='Train'
+        phase='train'
     )
 
     data_loader = torch.utils.data.DataLoader(
@@ -113,8 +113,8 @@ def trainer(model, category, config):
 #        print("X shape: ", X.shape)
 #        print("L shape: ", L.shape)
 #        print("S shape: ", S.shape)
-        print("mu: ", mu)
-        print("XFnorm: ", XFnorm)
+#        print("mu: ", mu)
+#        print("XFnorm: ", XFnorm)
 
 
     total_time = time.time() - start_time

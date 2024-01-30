@@ -1,6 +1,7 @@
 import argparse
 import os.path
 import torch
+import pandas as pd
 from omegaconf import OmegaConf
 from generating_syn_dataset import *
 from generating_signature_matrix import *
@@ -9,7 +10,7 @@ from train import trainer
 
 
 def build_model(config):
-    if config.data.name == "NoiseLevel20":
+    if config.data.name == "synthetic":
         model = RCLEDmodel(num_vars=30, in_channels_ENCODER=3, in_channels_DECODER=256)
     if config.data.name == "SMAP":
         model = RCLEDmodel(num_vars=25, in_channels_ENCODER=3, in_channels_DECODER=256)
@@ -27,7 +28,7 @@ def parse_args():
                         default=True,
                         help='Preparing data')
     parser.add_argument('--train',
-                        default=False,
+                        default=True,
                         help='Train the robust model')
     parser.add_argument('--detection',
                         default=False,
@@ -45,7 +46,6 @@ def synthetic(config):
     anomalies = pd.read_csv(os.path.join(config.data.data_label, 'synthetic.csv'))
     s = generate_time_series_dataset(config.synthetic.num_vars, config.synthetic.ts_lengths,
                                      config.synthetic.noise_level)
-    print(s.shape)
     s = adding_anomaly(s, anomalies)
     # train
     np.save(config.synthetic.output_dir + 'train' + f'/NoiseLevel{config.synthetic.noise_level}', s[:, :10000])
@@ -67,10 +67,11 @@ def preparing(config):
                                 f'NoiseLevel{config.synthetic.noise_level}.npy')
             data = np.load(PATH)
             data_normalized = normalization(data)
-            matrix = ts2matrix(data_normalized, config.signature_matrix.window, config.signature_matrix.time_step)
-            SAVE_PATH = os.path.join(config.signature_matrix.output_dir, config.data.name, phase,
-                                     f'NoiseLevel{config.synthetic.noise_level}_Window{config.signature_matrix.window}.npy')
-            np.save(SAVE_PATH, matrix)
+            for window in config.signature_matrix.windows:
+                matrix = ts2matrix(data_normalized, window, config.signature_matrix.time_step)
+                SAVE_PATH = os.path.join(config.signature_matrix.output_dir, config.data.name, phase,
+                                        f'NoiseLevel{config.synthetic.noise_level}_Window{window}.npy')
+                np.save(SAVE_PATH, matrix)
 
 
 def train(config):

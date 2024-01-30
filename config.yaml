@@ -21,11 +21,11 @@ signature_matrix:
   input_dir: './data/time_series/'
   output_dir: './data/signature_matrix/'
   time_step: 10
-  window: 60 #10 #30 #60
+  windows: [10, 30, 60]
 
 
 model:
-  checkpoint_dir: '/checkpoints/NoiseLevel20'
+  checkpoint_dir: '/checkpoints/'
   checkpoint_name: weights
   result_dir: results
   load_checkpoint: 20

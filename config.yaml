@@ -1,7 +1,7 @@
 data:
   name:  synthetic #SMAP #MSL
-  category: NoiseLevel20 #NoiseLevel10
-            #
+  category: NoiseLevel5 #NoiseLevel10
+            #NoiseLevel20
   data_dir: './data/signature_matrix/'
   data_label: './data/labeled_anomalies/'
   batch_size: 5
@@ -11,7 +11,7 @@ data:
 synthetic:
   ts_lengths: 20000
   num_vars: 30
-  noise_level: 20
+  noise_level: 5 # 5% 10% 15%
   noise_variance: 1
   noise_mean: 0
   output_dir: './data/time_series/synthetic/'
@@ -25,24 +25,22 @@ signature_matrix:
 
 
 model:
-  checkpoint_dir: '/checkpoints/'
+  checkpoint_dir: './checkpoints/'
   checkpoint_name: weights
   result_dir: results
-  load_checkpoint: 20
+  load_checkpoint: 2
 
-  exp_name: default
-  learning_rate: 3e-4
-  weight_decay: 0.05
+  learning_rate: 0.001
 
   num_workers: 2
-  epoch: 10
-  inner_iter: 5
+  epoch: 100
+  inner_iter: 1
 
   device: 'cuda'
   save_model: True
 
 hyperparameter:
-  lamda: 1
+  lamda: 0.001
   error_limit: 0.0001
   beta: 1
   gama: 0.005

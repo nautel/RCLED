@@ -31,7 +31,7 @@ def trainer(model, category, config):
         config=config,
         phase='train'
     )
-
+    print('print(train_dataset.shape):', train_dataset.shape)
     data_loader = torch.utils.data.DataLoader(
         train_dataset,
         batch_size=config.data.batch_size,
@@ -42,8 +42,10 @@ def trainer(model, category, config):
 
     # ===================== preparing optimizer =====================
     optimizer = torch.optim.Adam(
-        model.parameters(), lr=config.model.learning_rate, weight_decay=config.model.weight_decay
+        model.parameters(), lr=config.model.learning_rate
     )
+    # ===================== preparing loss function =================
+    criterion = nn.MSELoss()
     # ===================== preparing checkpoints =====================
 
     if not os.path.exists('checkpoints'):
@@ -52,13 +54,15 @@ def trainer(model, category, config):
         os.mkdir(config.model.checkpoint_dir)
 
     # ===================== training =====================
+    train_losses = []
 
     start_time = time.time()
     print("Starting RCLED training !")
     for epoch in range(config.model.epoch):
-
-
+        train_loss = 0.
         for step, X in enumerate(tqdm(data_loader)):
+#            print('X.shape:', X.shape)
+#            print('step:', step)
             L = torch.zeros(X.shape)
             S = torch.zeros(X.shape)
 
@@ -71,13 +75,16 @@ def trainer(model, category, config):
             LS0 = L + S
 
             for i in range(config.model.inner_iter):
-                ######train_one_epoch
                 L = X - S
                 ############# fit autoencoder ##########
-                loss = get_loss(model, L, config)
+                model.train()
+                output = model(L)
+                loss = criterion(output[-1], L[-1])
                 optimizer.zero_grad()
+                train_loss += loss.item()
                 loss.backward()
                 optimizer.step()
+                
                 ########################################
                 model.eval()
                 L = model(L)
@@ -99,16 +106,18 @@ def trainer(model, category, config):
             np.save(os.path.join(save_path, f'Epoch{epoch}_Step{step}_S'), L.detach().cpu().numpy())
             np.save(os.path.join(save_path, f'Epoch{epoch}_Step{step}_L'), S.detach().cpu().numpy())
 
+        with torch.no_grad():
             # logging
-            if (epoch + 1) % 2 == 0 and step == 0:
-                print(f"Epoch {epoch + 1} | Loss: {loss.item()}")
-            if (epoch + 1) % 1 == 0 and epoch > 0 and step == 0:
+            if (epoch + 1) % 1 == 0 :
+                print(f"Epoch {epoch + 1} | Loss: {train_loss/len(data_loader)}")
+            if (epoch + 1) % 1 == 0 and epoch > 0 :
                 if config.model.save_model:
-                    model_save_dir = os.path.join(os.getcwd(), config.model.checkpoint_dir, category)
+                    model_save_dir = os.path.join(os.getcwd(), config.model.checkpoint_dir, config.data.name, category)
                     if not os.path.exists(model_save_dir):
                         os.mkdir(model_save_dir)
-                    torch.save(model.state_dict(), os.path.join(model_save_dir, str(epoch + 1)))
-        
+                    torch.save(model.state_dict(), os.path.join(model_save_dir, str(epoch + 1)+'.pt'))
+
+        train_losses.append(train_loss)
 #        print("shrink parameter:", config.hyperparameter.lamda / mu)
 #        print("X shape: ", X.shape)
 #        print("L shape: ", L.shape)

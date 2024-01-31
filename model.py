@@ -140,38 +140,136 @@ class CnnEncoder(nn.Module):
 class Conv_LSTM(nn.Module):
     def __init__(self):
         super(Conv_LSTM, self).__init__()
-        self.conv1_lstm = ConvLSTM(input_channels=32, hidden_channels=[32],
+        #### head 1 #####
+        self.conv1_lstm_head1 = ConvLSTM(input_channels=32, hidden_channels=[32],
                                    kernel_size=3, step=5, effective_step=[4])
-        self.conv2_lstm = ConvLSTM(input_channels=64, hidden_channels=[64],
+        self.conv2_lstm_head1 = ConvLSTM(input_channels=64, hidden_channels=[64],
                                    kernel_size=3, step=5, effective_step=[4])
-        self.conv3_lstm = ConvLSTM(input_channels=128, hidden_channels=[128],
+        self.conv3_lstm_head1 = ConvLSTM(input_channels=128, hidden_channels=[128],
                                    kernel_size=3, step=5, effective_step=[4])
-        self.conv4_lstm = ConvLSTM(input_channels=256, hidden_channels=[256],
+        self.conv4_lstm_head1 = ConvLSTM(input_channels=256, hidden_channels=[256],
                                    kernel_size=3, step=5, effective_step=[4])
-
+        #### head 2 #####
+        #self.conv1_lstm_head2 = ConvLSTM(input_channels=32, hidden_channels=[32],
+        #                           kernel_size=3, step=5, effective_step=[4])
+        #self.conv2_lstm_head2 = ConvLSTM(input_channels=64, hidden_channels=[64],
+        #                           kernel_size=3, step=5, effective_step=[4])
+        #self.conv3_lstm_head2 = ConvLSTM(input_channels=128, hidden_channels=[128],
+        #                           kernel_size=3, step=5, effective_step=[4])
+        #self.conv4_lstm_head2 = ConvLSTM(input_channels=256, hidden_channels=[256],
+        #                           kernel_size=3, step=5, effective_step=[4])
+        #### head 3 #####
+        #self.conv1_lstm_head3 = ConvLSTM(input_channels=32, hidden_channels=[32],
+        #                           kernel_size=3, step=5, effective_step=[4])
+        #self.conv2_lstm_head3 = ConvLSTM(input_channels=64, hidden_channels=[64],
+        #                           kernel_size=3, step=5, effective_step=[4])
+        #self.conv3_lstm_head3 = ConvLSTM(input_channels=128, hidden_channels=[128],
+        #                           kernel_size=3, step=5, effective_step=[4])
+        #self.conv4_lstm_head3 = ConvLSTM(input_channels=256, hidden_channels=[256],
+        #                           kernel_size=3, step=5, effective_step=[4])
+        #### head 4 #####
+        #self.conv1_lstm_head4 = ConvLSTM(input_channels=32, hidden_channels=[32],
+        #                           kernel_size=3, step=5, effective_step=[4])
+        #self.conv2_lstm_head4 = ConvLSTM(input_channels=64, hidden_channels=[64],
+        #                           kernel_size=3, step=5, effective_step=[4])
+        #self.conv3_lstm_head4 = ConvLSTM(input_channels=128, hidden_channels=[128],
+        #                           kernel_size=3, step=5, effective_step=[4])
+        #self.conv4_lstm_head4 = ConvLSTM(input_channels=256, hidden_channels=[256],
+        #                           kernel_size=3, step=5, effective_step=[4])
+        #### head 5 #####
+        #self.conv1_lstm_head5 = ConvLSTM(input_channels=32, hidden_channels=[32],
+        #                           kernel_size=3, step=5, effective_step=[4])
+        #self.conv2_lstm_head5 = ConvLSTM(input_channels=64, hidden_channels=[64],
+        #                           kernel_size=3, step=5, effective_step=[4])
+        #self.conv3_lstm_head5 = ConvLSTM(input_channels=128, hidden_channels=[128],
+        #                           kernel_size=3, step=5, effective_step=[4])
+        #self.conv4_lstm_head5 = ConvLSTM(input_channels=256, hidden_channels=[256],
+        #                           kernel_size=3, step=5, effective_step=[4])
     def forward(self, conv1_out, conv2_out,
                 conv3_out, conv4_out):
-        conv1_lstm_out_att_5_step = []
-        conv2_lstm_out_att_5_step = []
-        conv3_lstm_out_att_5_step = []
-        conv4_lstm_out_att_5_step = []
-        for i in range(5):
-            conv1_lstm_out = self.conv1_lstm(conv1_out)
-            conv1_lstm_out_att = attention(conv1_lstm_out[0][0])
-            conv1_lstm_out_att_5_step.append(conv1_lstm_out_att.unsqueeze(0))
+        # head 1
+        conv1_lstm_out_head1 = self.conv1_lstm_head1(conv1_out)
+        conv1_lstm_out_att_head1 = attention(conv1_lstm_out_head1[0][0])
 
-            conv2_lstm_out = self.conv2_lstm(conv2_out)
-            conv2_lstm_out_att = attention(conv2_lstm_out[0][0])
-            conv2_lstm_out_att_5_step.append(conv2_lstm_out_att.unsqueeze(0))
+        conv2_lstm_out_head1 = self.conv2_lstm_head1(conv2_out)
+        conv2_lstm_out_att_head1 = attention(conv2_lstm_out_head1[0][0])
 
-            conv3_lstm_out = self.conv3_lstm(conv3_out)
-            conv3_lstm_out_att = attention(conv3_lstm_out[0][0])
-            conv3_lstm_out_att_5_step.append(conv3_lstm_out_att.unsqueeze(0))
+        conv3_lstm_out_head1 = self.conv3_lstm_head1(conv3_out)
+        conv3_lstm_out_att_head1 = attention(conv3_lstm_out_head1[0][0])
 
-            conv4_lstm_out = self.conv4_lstm(conv4_out)
-            conv4_lstm_out_att = attention(conv4_lstm_out[0][0])
-            conv4_lstm_out_att_5_step.append(conv4_lstm_out_att.unsqueeze(0))
+        conv4_lstm_out_head1 = self.conv4_lstm_head1(conv4_out)
+        conv4_lstm_out_att_head1 = attention(conv4_lstm_out_head1[0][0])
+        # head 2 
+        #conv1_lstm_out_head2 = self.conv1_lstm_head2(conv1_out)
+        #conv1_lstm_out_att_head2 = attention(conv1_lstm_out_head2[0][0])
 
+        #conv2_lstm_out_head2 = self.conv2_lstm_head2(conv2_out)
+        #conv2_lstm_out_att_head2 = attention(conv2_lstm_out_head2[0][0])
+
+        #conv3_lstm_out_head2 = self.conv3_lstm_head2(conv3_out)
+        #conv3_lstm_out_att_head2 = attention(conv3_lstm_out_head2[0][0])
+
+        #conv4_lstm_out_head2 = self.conv4_lstm_head2(conv4_out)
+        #conv4_lstm_out_att_head2 = attention(conv4_lstm_out_head2[0][0])
+        # head 3 
+        #conv1_lstm_out_head3 = self.conv1_lstm_head3(conv1_out)
+        #conv1_lstm_out_att_head3 = attention(conv1_lstm_out_head3[0][0])
+
+        #conv2_lstm_out_head3 = self.conv2_lstm_head3(conv2_out)
+        #conv2_lstm_out_att_head3 = attention(conv2_lstm_out_head3[0][0])
+
+        #conv3_lstm_out_head3 = self.conv3_lstm_head3(conv3_out)
+        #conv3_lstm_out_att_head3 = attention(conv3_lstm_out_head3[0][0])
+
+        #conv4_lstm_out_head3 = self.conv4_lstm_head3(conv4_out)
+        #conv4_lstm_out_att_head3 = attention(conv4_lstm_out_head3[0][0])
+        # head 4
+        #conv1_lstm_out_head4 = self.conv1_lstm_head4(conv1_out)
+        #conv1_lstm_out_att_head4 = attention(conv1_lstm_out_head4[0][0])
+
+        #conv2_lstm_out_head4 = self.conv2_lstm_head4(conv2_out)
+        #conv2_lstm_out_att_head4 = attention(conv2_lstm_out_head4[0][0])
+
+        #conv3_lstm_out_head4 = self.conv3_lstm_head4(conv3_out)
+        #conv3_lstm_out_att_head4 = attention(conv3_lstm_out_head4[0][0])
+
+        #conv4_lstm_out_head4 = self.conv4_lstm_head4(conv4_out)
+        #conv4_lstm_out_att_head4 = attention(conv4_lstm_out_head4[0][0])
+        # head 5
+        #conv1_lstm_out_head5 = self.conv1_lstm_head5(conv1_out)
+        #conv1_lstm_out_att_head5 = attention(conv1_lstm_out_head5[0][0])
+
+        #conv2_lstm_out_head5 = self.conv2_lstm_head5(conv2_out)
+        #conv2_lstm_out_att_head5 = attention(conv2_lstm_out_head5[0][0])
+
+        #conv3_lstm_out_head5 = self.conv3_lstm_head5(conv3_out)
+        #conv3_lstm_out_att_head5 = attention(conv3_lstm_out_head5[0][0])
+
+        #conv4_lstm_out_head5 = self.conv4_lstm_head5(conv4_out)
+        #conv4_lstm_out_att_head5 = attention(conv4_lstm_out_head5[0][0])
+
+        conv1_lstm_out_att_5_step = [conv1_lstm_out_att_head1.unsqueeze(0), ]
+        #                              conv1_lstm_out_att_head2.unsqueeze(0), 
+        #                              conv1_lstm_out_att_head3.unsqueeze(0), 
+        #                              conv1_lstm_out_att_head4.unsqueeze(0), 
+        #                              conv1_lstm_out_att_head5.unsqueeze(0)]
+        conv2_lstm_out_att_5_step = [conv2_lstm_out_att_head1.unsqueeze(0), ]
+        #                              conv2_lstm_out_att_head2.unsqueeze(0),
+        #                              conv2_lstm_out_att_head3.unsqueeze(0),
+        #                              conv2_lstm_out_att_head4.unsqueeze(0),
+        #                              conv2_lstm_out_att_head5.unsqueeze(0)]
+        conv3_lstm_out_att_5_step = [conv3_lstm_out_att_head1.unsqueeze(0), ]
+        #                              conv3_lstm_out_att_head2.unsqueeze(0),
+        #                              conv3_lstm_out_att_head3.unsqueeze(0),
+        #                              conv3_lstm_out_att_head4.unsqueeze(0),
+        #                              conv3_lstm_out_att_head5.unsqueeze(0) ]
+        conv4_lstm_out_att_5_step = [conv4_lstm_out_att_head1.unsqueeze(0), ]
+        #                              conv4_lstm_out_att_head2.unsqueeze(0),
+        #                              conv4_lstm_out_att_head3.unsqueeze(0),
+        #                              conv4_lstm_out_att_head4.unsqueeze(0),
+        #                              conv4_lstm_out_att_head5.unsqueeze(0) ]
+        
+        #print(conv1_lstm_out_att_5_step[0] == conv1_lstm_out_att_5_step[1])
         return torch.cat(conv1_lstm_out_att_5_step, dim=0), \
                torch.cat(conv2_lstm_out_att_5_step, dim=0), \
                torch.cat(conv3_lstm_out_att_5_step, dim=0), \
@@ -249,7 +347,8 @@ class RCLEDmodel(nn.Module):
 
         gen_x = self.cnn_decoder(conv1_lstm_out, conv2_lstm_out,
                                  conv3_lstm_out, conv4_lstm_out)
-        return gen_x
+        return torch.cat([gen_x, gen_x, gen_x, gen_x, gen_x], dim=0)
+
 
 
 if __name__ == '__main__':

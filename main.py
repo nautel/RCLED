@@ -1,5 +1,6 @@
 import argparse
 import os.path
+from numpy import False_
 import torch
 import pandas as pd
 from omegaconf import OmegaConf
@@ -25,13 +26,13 @@ def parse_args():
                         default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.yaml'),
                         help='config file')
     parser.add_argument('--preparing',
-                        default=True,
+                        default=False,
                         help='Preparing data')
     parser.add_argument('--train',
-                        default=True,
+                        default=False,
                         help='Train the robust model')
     parser.add_argument('--detection',
-                        default=False,
+                        default=True,
                         help='Detection anomalies')
     args, unknowns = parser.parse_known_args()
     return args
@@ -39,7 +40,7 @@ def parse_args():
 
 def synthetic(config):
     np.random.seed(42)
-    print("Generating NoiseLevel20 time series")
+    print(f"Generating {config.data.name} time series")
     if not os.path.exists(config.synthetic.output_dir):
         os.makedirs(config.synthetic.output_dir)
 
@@ -82,14 +83,13 @@ def train(config):
     model = model.to(config.model.device)
     model.train()
     # sao chép và phân phối mô hình vào nhiều GPU nếu có
-    model = torch.nn.DataParallel(model)
     trainer(model, config.data.category, config)
 
 
 def detection(config):
     model = build_model(config)
-    checkpoint = torch.load(os.path.join(os.getcwd()), config.model.checkpoint_dir, config.data.category,
-                            str(config.model.load_checkpoint))
+    checkpoint = torch.load(os.path.join(os.getcwd(), config.model.checkpoint_dir, config.data.name, config.data.category,
+                            str(config.model.load_checkpoint)+'.pt'))
     model.load_state_dict(checkpoint)
     model.to(config.model.device)
     model.eval()

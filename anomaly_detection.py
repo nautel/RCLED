@@ -41,7 +41,6 @@ class Anomaly_Detection():
     def __call__(self) -> any:
 
         valid_score = []
-
         labels_list = []
         predictions = []
 

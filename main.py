@@ -26,13 +26,13 @@ def parse_args():
                         default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.yaml'),
                         help='config file')
     parser.add_argument('--preparing',
-                        default=False,
+                        default=True,
                         help='Preparing data')
     parser.add_argument('--train',
-                        default=False,
+                        default=True,
                         help='Train the robust model')
     parser.add_argument('--detection',
-                        default=True,
+                        default=False,
                         help='Detection anomalies')
     args, unknowns = parser.parse_known_args()
     return args
@@ -65,15 +65,27 @@ def preparing(config):
 
         if config.data.name == 'synthetic':
             PATH = os.path.join(config.signature_matrix.input_dir, config.data.name, phase,
-                                f'NoiseLevel{config.synthetic.noise_level}.npy')
+                                f'{config.data.category}.npy')
             data = np.load(PATH)
             data_normalized = normalization(data)
             for window in config.signature_matrix.windows:
                 matrix = ts2matrix(data_normalized, window, config.signature_matrix.time_step)
                 SAVE_PATH = os.path.join(config.signature_matrix.output_dir, config.data.name, phase,
-                                        f'NoiseLevel{config.synthetic.noise_level}_Window{window}.npy')
+                                        f'{config.data.category}_Window{window}.npy')
                 np.save(SAVE_PATH, matrix)
 
+        if config.data.name == 'SMAP':  
+            INPUT_PATH = os.path.join(config.signature_matrix.input_dir, config.data.name, phase,
+                                f'{config.data.category}.npy')
+            data = np.load(INPUT_PATH)
+            data = data.transpose()
+            print('Series SHAPE: ', data.shape)
+            data_normalized = normalization(data)
+            for window in config.signature_matrix.windows:
+                matrix = ts2matrix(data_normalized, window, config.signature_matrix.time_step)
+                SAVE_PATH = os.path.join(config.signature_matrix.output_dir, config.data.name, phase,
+                                  f'{config.data.category}_Window{window}.npy')
+                np.save(SAVE_PATH, matrix)
 
 def train(config):
     torch.manual_seed(42)
@@ -109,6 +121,8 @@ if __name__ == "__main__":
         print('Preparing ...')
         if config.data.name == 'synthetic':
             synthetic(config)
+            preparing(config)
+        if config.data.name == 'SMAP':
             preparing(config)
     if args.train:
         print('Training ...')

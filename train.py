@@ -110,7 +110,7 @@ def trainer(model, category, config):
             # logging
             if (epoch + 1) % 1 == 0 :
                 print(f"Epoch {epoch + 1} | Loss: {train_loss/len(data_loader)}")
-            if (epoch + 1) % 1 == 0 and epoch > 0 :
+            if (epoch + 1) % 10 == 0 and epoch > 0 :
                 if config.model.save_model:
                     model_save_dir = os.path.join(os.getcwd(), config.model.checkpoint_dir, config.data.name, category)
                     if not os.path.exists(model_save_dir):

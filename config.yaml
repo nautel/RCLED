@@ -1,7 +1,13 @@
+signature_matrix:
+  input_dir: '/content/drive/MyDrive/RCLED/datasets/' #'./data/time_series/'  
+  output_dir: './data/signature_matrix/'
+  time_step: 10 # 2 (SMAP) 10(synthetic)
+  windows: [10, 30, 60]
+  
 data:
-  name:  synthetic #SMAP #MSL
-  category: NoiseLevel5 #NoiseLevel10
-            #NoiseLevel20
+  name:  SMAP #synthetic #SMAP #MSL
+  category: A-1 #NoiseLevel5 #NoiseLevel10
+                #NoiseLevel20
   data_dir: './data/signature_matrix/'
   data_label: './data/labeled_anomalies/'
   batch_size: 5
@@ -15,13 +21,6 @@ synthetic:
   noise_variance: 1
   noise_mean: 0
   output_dir: './data/time_series/synthetic/'
-
-
-signature_matrix:
-  input_dir: './data/time_series/'
-  output_dir: './data/signature_matrix/'
-  time_step: 10
-  windows: [10, 30, 60]
 
 
 model:

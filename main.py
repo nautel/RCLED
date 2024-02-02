@@ -1,6 +1,6 @@
 import argparse
 import os.path
-from numpy import False_
+from numpy import False_, format_float_scientific
 import torch
 import pandas as pd
 from omegaconf import OmegaConf
@@ -8,7 +8,7 @@ from generating_syn_dataset import *
 from generating_signature_matrix import *
 from model import RCLEDmodel
 from train import trainer
-
+from anomaly_detection import Anomaly_Detection
 
 def build_model(config):
     if config.data.name == "synthetic":
@@ -26,13 +26,13 @@ def parse_args():
                         default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.yaml'),
                         help='config file')
     parser.add_argument('--preparing',
-                        default=True,
+                        default=False,
                         help='Preparing data')
     parser.add_argument('--train',
-                        default=True,
+                        default=False,
                         help='Train the robust model')
     parser.add_argument('--detection',
-                        default=False,
+                        default=True,
                         help='Detection anomalies')
     args, unknowns = parser.parse_known_args()
     return args
@@ -106,6 +106,7 @@ def detection(config):
     model.to(config.model.device)
     model.eval()
     predict_anomalies = Anomaly_Detection(model, config)
+    predict_anomalies()
 
 
 if __name__ == "__main__":

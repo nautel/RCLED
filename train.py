@@ -26,12 +26,14 @@ def trainer(model, category, config):
     :param category: the category of the dataset
     """
     # ===================== preparing data ... =====================
-    train_dataset = DatasetMaker(
+    timeseries = DatasetMaker(
         root=config.data.data_dir,
         config=config,
         phase='train'
     )
-    print('print(train_dataset.shape):', train_dataset.shape)
+
+    train_dataset = MyDataset(timeseries)
+
     data_loader = torch.utils.data.DataLoader(
         train_dataset,
         batch_size=config.data.batch_size,
@@ -60,9 +62,10 @@ def trainer(model, category, config):
     print("Starting RCLED training !")
     for epoch in range(config.model.epoch):
         train_loss = 0.
-        for step, X in enumerate(tqdm(data_loader)):
+        for step, batch in enumerate(tqdm(data_loader)):
 #            print('X.shape:', X.shape)
 #            print('step:', step)
+            X = batch[0]
             L = torch.zeros(X.shape)
             S = torch.zeros(X.shape)
 

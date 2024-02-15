@@ -1,7 +1,7 @@
 import os
 import numpy as np
 import torch
-
+from torch.utils.data import Dataset
 
 def DatasetMaker(root, config, phase):
     # ===================== preparing data ... =====================
@@ -10,7 +10,7 @@ def DatasetMaker(root, config, phase):
     if config.data.name == 'synthetic':
         if phase == 'train' or phase == 'valid':
             FILE_NAME = list()
-            for window in [10, 30, 60]:
+            for window in config.signature_matrix.windows:
                 name = f'NoiseLevel{config.synthetic.noise_level}_Window{window}.npy'
                 FILE_NAME.append(name)
 
@@ -30,7 +30,7 @@ def DatasetMaker(root, config, phase):
 
         if phase == 'test':
             FILE_NAME = list()
-            for window in [10, 30, 60]:
+            for window in config.signature_matrix.windows:
                 name = f'NoiseLevel{config.synthetic.noise_level}_Window{window}.npy'
                 FILE_NAME.append(name)
 
@@ -45,7 +45,7 @@ def DatasetMaker(root, config, phase):
     if config.data.name == 'SMAP':
         if phase == 'train' or phase == 'valid':
             FILE_NAME = list()
-            for window in [10, 30, 60]:
+            for window in config.signature_matrix.windows:
                 name = f'{config.data.category}_Window{window}.npy'
                 FILE_NAME.append(name)
 
@@ -65,7 +65,7 @@ def DatasetMaker(root, config, phase):
 
         if phase == 'test':
             FILE_NAME = list()
-            for window in [10, 30, 60]:
+            for window in config.signature_matrix.windows:
                 name = f'{config.data.category}_Window{window}.npy'
                 FILE_NAME.append(name)
 
@@ -78,3 +78,14 @@ def DatasetMaker(root, config, phase):
             dataset = np.transpose(dataset, (1, 0, 2, 3))
 
     return dataset
+
+
+class MyDataset(Dataset):
+  def __init__(self, X):
+    self.X = X
+
+  def __len__(self):
+    return self.X.__len__() - (5 - 1)
+
+  def __getitem__(self, index):
+    return (self.X[index : index + 5])

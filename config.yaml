@@ -1,16 +1,16 @@
 signature_matrix:
-  input_dir: '/content/drive/MyDrive/RCLED/datasets/' #'./data/time_series/'  
+  input_dir: '/content/RCLED/data/time_series/' #'./data/time_series/'  
   output_dir: './data/signature_matrix/'
   time_step: 10 # 2 (SMAP) 10(synthetic)
-  windows: [10, 30, 60]
+  windows: [5, 15, 30]
   
 data:
-  name:  SMAP #synthetic #SMAP #MSL
-  category: A-1 #NoiseLevel5 #NoiseLevel10
+  name:  synthetic #synthetic #SMAP #MSL
+  category: NoiseLevel5 #NoiseLevel5 #NoiseLevel10
                 #NoiseLevel20
   data_dir: './data/signature_matrix/'
   data_label: './data/labeled_anomalies/'
-  batch_size: 5
+  batch_size: 1
   trajectory_steps: 10000
 
 
@@ -27,18 +27,18 @@ model:
   checkpoint_dir: './checkpoints/'
   checkpoint_name: weights
   result_dir: './results/'
-  load_checkpoint: 10
+  load_checkpoint: 20
 
-  learning_rate: 0.001
+  learning_rate: 0.002
 
   num_workers: 2
-  epoch: 100
+  epoch: 20
   inner_iter: 1
 
   device: 'cuda'
   save_model: True
 
-hyperparameters:
+hyperparameter:
   lamda: 0.001
   error_limit: 0.0001
   beta: 1
@@ -47,5 +47,4 @@ hyperparameters:
 
 metric:
   auroc: True
-  misclassifications: False
   visualisation: False
